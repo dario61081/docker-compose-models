@@ -1,0 +1,52 @@
+version: '3'
+services:
+  openvpn-server:
+    container_name: openvpn-server
+    image: kylemanna/openvpn
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./openvpn-data:/etc/openvpn
+    ports:
+      - "1194:1194/udp"
+    restart: always
+    environment:
+      - OVPN_K8S_MODE=false
+    networks:
+      - vpn
+
+  openvpn-client:
+    container_name: openvpn-client
+    image: kylemanna/openvpn
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./openvpn-data:/etc/openvpn
+    restart: always
+    depends_on:
+      - openvpn-server
+    environment:
+      - OVPN_K8S_MODE=false
+    command: ["ovpn_run", "getclient"]
+    networks:
+      - vpn
+
+  openvpn-admin:
+    container_name: openvpn-admin
+    image: kylemanna/openvpn-admin
+    volumes:
+      - ./openvpn-admin-data:/etc/openvpn-admin
+    ports:
+      - "8080:80"
+    restart: always
+    depends_on:
+      - openvpn-server
+    environment:
+      - OVPN_SERVER_URL=https://openvpn-server
+      - OVPN_ADMIN_USERNAME=myuser        # Cambia "myuser" al nombre de usuario que deseas
+      - OVPN_ADMIN_PASSWORD=mypassword    # Cambia "mypassword" a la contraseña que deseas
+    networks:
+      - vpn
+
+networks:
+  vpn:
