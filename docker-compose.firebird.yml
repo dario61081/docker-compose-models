@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  firebird30:
+    image: jacobalberty/firebird:3.0
+    environment:
+      - ISC_PASSWORD=mysecretpassword
+    volumes:
+      - ./data_30:/firebird/data_30
+    ports:
+      - "3050:3050"
+    restart: always
+
+  firebird40:
+    image: jacobalberty/firebird:4.0
+    environment:
+      - ISC_PASSWORD=mysecretpassword
+    volumes:
+      - ./data_40:/firebird/data_40
+    ports:
+      - "3051:3050"
+    restart: always
+
+  filebrowser:
+    image: filebrowser/filebrowser
+    volumes:
+      - ./data_30:/firebird/data_30
+      - ./data_40:/firebird/data_40
+    ports:
+      - "8080:8080"
+    restart: always
+    command: filebrowser -d /firebird/data_30
+    environment:
+      - FILEBROWSER_AUTH_METHOD=proxy
+      - FILEBROWSER_AUTH_PROXY_HEADER=X-Forwarded-User
+      - FILEBROWSER_AUTH_PROXY_WHITELIST=myusername
